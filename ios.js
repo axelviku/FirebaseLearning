@@ -9,8 +9,8 @@ app.post('/firebase/notification', async function (req, res) {
     var options = {
         token: {
             key: `${__dirname}/ios.p8`,
-            keyId: "D9DM65LMKF",
-            teamId: "952ZU65CH6"
+            keyId: "",
+            teamId: ""
         },
         // proxy: {
         //   host: "192.168.1.140",
