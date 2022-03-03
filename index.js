@@ -10,7 +10,7 @@ app.use(bodyparser.urlencoded({ extended: true }));
 const port = 3000
 
 var serviceAccount = require('./firebase-config.json');
-var databaseURL = "https://watchout-passenger.firebaseio.com"
+var databaseURL = "https://"
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   databaseURL: databaseURL
