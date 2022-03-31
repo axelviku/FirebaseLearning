@@ -1,0 +1,127 @@
+user/gen_notification/:cloud_key_to_notify
+req.body = os_type           //device type
+req.body = vehicle_type      //vehicle type
+req.body = title             //title of notification
+req.body = payload           //message
+
+
+///suppose first page
+//GenNoti is a function used in amother page to send notification
+//notification 
+module.exports.GenNoti = async function GenNoti(req, res) {
+    try {
+        console.log(req.body);
+            var data = {    
+                cloud_key_to_notify: req.params.cloud_key_to_notify,
+                amb: req.body.vehicle_type,
+                os_type: req.body.os_type,
+                data:data = {
+                    notification: {
+                        title:req.body.title,
+                        body: req.body.payload,
+                    }
+                }
+            }
+//opentak is a page where you call
+            const success=await opentak.GenNoti(data);
+            if(success===1){
+                return res.send({message:"message send successfully!!!",data:data})
+            }
+    } catch (error) {
+        res.send({status:'success', message:"Cloud-Key Error"})
+    }
+}
+
+
+
+
+
+//this is opentak page 
+module.exports.GenNoti = async function GenNoti(data, res, req) {
+    try {
+        let notificationInfo1;
+        if (data.os_type === 'a') {
+            notificationInfo1 = await AndroidNotify.sendNotifications(data,data.amb);
+            console.log(notificationInfo1);
+
+        } else if (data.os_type === 'i') {
+            notificationInfo1 = await IosNotify.sendNotifications(data, data.Amb);
+
+        }
+        return notificationInfo1.successCount
+    } catch (error) {
+        res.send("Cloud-key error")
+    }
+}
+
+
+//AndroidNotify page
+admin.initializeApp({});
+// Send Notifications
+module.exports.sendNotifications = function sendNotifiactions(data, type) {
+
+    return new Promise(function (resolve, reject) {
+        // console.log("android notifi",data);
+        var serviceAccount, databaseURL;
+        switch (type) {
+            case 'r':
+                console.log("hi i am andirod");
+                serviceAccount = require('../lib/android-firebase/responderapp-3b058-firebase-adminsdk-c7tl2-51cae169bc.json');
+                databaseURL = config.fireBase.responder;
+                break;
+            case 'd':
+                serviceAccount = require('../lib/android-firebase/watchoutcardriver-firebase-adminsdk-v86ai-207a8c5b22.json');
+                databaseURL = config.fireBase.driver;
+                break;
+            case 'p':
+                console.log("ppp");
+                serviceAccount = require('../lib/android-firebase/watchout-passenger-firebase-adminsdk-91qyh-8836bca816.json');
+                databaseURL = config.fireBase.passenger;
+                break;
+            case 'dc':
+                serviceAccount = require('../lib/android-firebase/dashcam-b10d0-firebase-adminsdk-29jya-9ab26547e8.json');
+                databaseURL = config.fireBase.dashcam;
+                break;
+            case 'a':
+                console.log("a");
+                serviceAccount = require('../lib/android-firebase/watchout-vehicle-firebase-adminsdk-1arme-fac214d215.json');
+                break;
+            case 'h':
+                console.log("h");
+                serviceAccount = require('../lib/android-firebase/watchout-vehicle-firebase-adminsdk-1arme-fac214d215.json');
+                break;
+            default:
+                console.log("default");
+                serviceAccount = require('../lib/android-firebase/watchout-vehicle-firebase-adminsdk-1arme-fac214d215.json');
+
+        }
+
+
+        var registrationToken = data.cloud_key_to_notify;
+        var payload;
+        if (type === data.amb) {
+            payload = data.data;
+        } else {
+            payload = {
+                data: data.data
+            };
+        }
+        var options = {
+            priority: "high",
+            collapseKey: 'watchOut'
+        };
+        var notifications = admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount),
+            databaseURL: databaseURL
+        }, `default${Math.floor((Math.random() * 100000000000) + 1)}`);
+        // console.log("====================credential================\n", notifications);
+        // console.log(payload)
+        notifications.messaging().sendToDevice(registrationToken, payload, options)
+            .then(function (response) {
+                resolve(response)
+            })
+            .catch(function (err) {
+                reject(err)
+            });
+    })
+}
